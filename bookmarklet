@@ -1,33 +1,38 @@
 javascript:(function () {
-  // ========= KONFIG =========
-  // Basis zu deinem Repo via jsDelivr (CORS-freundlich)
-  var BASE = 'https://cdn.jsdelivr.net/gh/USER/REPO@main/';
-  // Welche Dateien sollen geladen werden?
-  var FILES = [
-    BASE + 'a11y-runner.js',  // Kern/Overlay
-    BASE + 'a11y-111.js',     // Prüfschritt WCAG 1.1.1
-    BASE + 'a11y-131.js'      // Prüfschritt WCAG 1.3.1
+  var FILES = ['a11y-runner.js','a11y-111.js','a11y-131.js'];
+
+  // Dein gepinnter Commit:
+  var PIN = 'ea1eaaf';
+  var REF = '@' + PIN;
+
+  var BASES = [
+    'https://cdn.jsdelivr.net/gh/ElVariablo/A11YBookmarklet' + REF + '/',
+    'https://raw.githack.com/ElVariablo/A11YBookmarklet/' + PIN + '/',
+    'https://cdn.statically.io/gh/ElVariablo/A11YBookmarklet/' + PIN + '/'
   ];
-  // ==========================
 
-  // wenn der Runner schon da ist: direkt ausführen
-  if (window.A11Y && typeof window.A11Y.runAll === 'function') {
-    window.A11Y.runAll();
-    return;
+  function loadOne(urls, ondone, onfail){
+    if (!urls.length) { onfail && onfail(); return; }
+    var url = urls.shift() + (urls[0] && urls[0].indexOf('?')>-1 ? '&' : '?') + 't=' + Date.now();
+    var s = document.createElement('script');
+    s.src = url; s.async = true;
+    s.onload = ondone;
+    s.onerror = function(){ loadOne(urls, ondone, onfail); };
+    document.head.appendChild(s);
   }
-
-  // sonst alles laden (mit Cache-Bust)
-  (function load(i){
+  function loadWithFallback(path, cb, fail){
+    loadOne(BASES.map(function(b){ return b + path; }), cb, fail);
+  }
+  function series(i){
     if (i >= FILES.length) {
-      if (window.A11Y && typeof window.A11Y.runAll === 'function') window.A11Y.runAll();
-      else alert('Runner nicht verfügbar.');
+      (window.A11Y && typeof window.A11Y.runAll === 'function') ? window.A11Y.runAll() : alert('Runner nicht verfügbar.');
       return;
     }
-    var s = document.createElement('script');
-    s.src = FILES[i] + (FILES[i].includes('?') ? '&' : '?') + 't=' + Date.now();
-    s.async = true;
-    s.onload = function(){ load(i+1); };
-    s.onerror = function(){ alert('Fehler beim Laden: ' + FILES[i]); };
-    document.head.appendChild(s);
-  })(0);
+    loadWithFallback(FILES[i], function(){ series(i+1); }, function(){
+      alert('Fehler beim Laden (alle CDNs probiert): ' + FILES[i]);
+    });
+  }
+
+  if (window.A11Y && typeof window.A11Y.runAll === 'function') { window.A11Y.runAll(); }
+  else { series(0); }
 })();
