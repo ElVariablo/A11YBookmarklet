@@ -434,14 +434,3 @@ Nutzung (Bookmarklet):
   render(STATE.findings);
 
 })();
-
-/*
-BOOKMARKLET (kompakt – als Lesezeichen-URL verwenden):
-
-javascript:(()=>{${encodeURIComponent(`
-  /* WCAG 1.4.3 Auditor – siehe Quelltext für Kommentare */
-  (${WCAG143Auditor? WCAG143Auditor.toString(): function(){/* placeholder when static */}.toString()})();
-`).replace(/%20/g,' ')}})();
-
-Hinweis: Einige Browser limitieren die maximale URL-Länge. Wenn das Bookmarklet nicht speicherbar ist, nutzen Sie den oberen Quelltext in einem Bookmarklet-Builder (oder hosten Sie das Script und erstellen Sie ein kurzes Loader-Bookmarklet).
-*/
